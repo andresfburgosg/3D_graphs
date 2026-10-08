@@ -2998,5 +2998,8 @@
 {"timestamp": "2025-11-18T13:21:15.000Z", "nodeId": "223f93f1-29f2-46d6-bb0d-ec080f35f38b", "metricOne": 100.25, "secondId": "9b55326e-b613-47ec-b0ef-1072c2e3b88b", "parentId": "da00bc22-0216-4554-9650-c2c2bd97a418", "level": 4},
 {"timestamp": "2025-07-30T09:13:26.000Z", "nodeId": "4a371665-346a-4e2c-9c66-4eae8867a9af", "metricOne": 54.35, "secondId": "c20bdf46-228c-4682-8780-bd7c3946a21c", "parentId": "953c79dc-8065-4726-a76a-fbddb5397e70", "level": 4},
 {"timestamp": "2025-12-21T01:54:37.000Z", "nodeId": "c808d88a-6f56-492a-bb6f-7d82cde2b9d3", "metricOne": 51.74, "secondId": "a7e56fe4-29f1-46eb-8468-7fd3bdba0037", "parentId": "5c4c235a-fb57-4638-bc8d-787f48260c2d", "level": 2},
-{"timestamp": "2025-05-07T04:55:34.000Z", "nodeId": "7cbdf487-6c3f-4e71-ba67-18b7a5f57fec", "metricOne": 60.09, "secondId": "99590801-5976-4cce-8da8-1d95c85ad011", "parentId": "d5bdd426-8604-41a2-81fc-4613da5488f3", "level": 4}
+{"timestamp": "2025-05-07T04:55:34.000Z", "nodeId": "7cbdf487-6c3f-4e71-ba67-18b7a5f57fec", "metricOne": 60.09, "secondId": "99590801-5976-4cce-8da8-1d95c85ad011", "parentId": "d5bdd426-8604-41a2-81fc-4613da5488f3", "level": 4},
+{"timestamp": "2025-05-07T04:55:34.000Z", "nodeId": "7cbdf487-6c3f-4e71-ba67-18b7a5f57fec", "metricOne": 60.09, "secondId": "99590801-5976-4cce-8da8-1d95c85ad011", "parentId": "d5bdd426-8604-41a2-81fc-4613da5488f3", "level": 4},
+{"timestamp": "2025-05-07T04:55:34.000Z", "nodeId": "7cbdf487-6c3f-4e71-ba67-18b7a5f57fec", "metricOne": 60.09, "secondId": "99590801-5976-4cce-8da8-1d95c85ad011", "parentId": "d5bdd426-8604-41a2-81fc-4613da5488f3", "level": 4},
+{"timestamp": "2025-05-07T04:55:34.000Z", "nodeId": "7cbdf487-6c3f-4e71-ba67-18b7a5f57hjv", "metricOne": 60.09, "secondId": "99590801-5976-4cce-8da8-1d95c85ad011", "parentId": "7cbdf487-6c3f-4e71-ba67-18b7a5f57fec", "level": 5}
 ]
