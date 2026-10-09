@@ -6,7 +6,7 @@ import {
   executeDuckDBQuery,
   getDatabaseFilePath,
 } from "@/infrastructure/database/duckDb/query";
-import { TOPOLOGY_MAIN_NODE, TREE_NODE_IN_CYCLE_LEVEL } from "@/lib/constants";
+import { TOPOLOGY_MAIN_NODE } from "@/lib/constants";
 
 const ALLOWED_FIELDS = {
   timestamp: "timestamp",
@@ -20,7 +20,8 @@ const ALLOWED_FIELDS = {
 export class TopologyDuckDbRepository implements TopologyRepository {
   #nodeIdParentIdMap = new Map<string, string>();
   #finalTopologyData: Topology[] = [];
-  #nodeIdLevelMap = new Map<string, number>();
+  #rowsByNodeId = new Map<string, Topology>();
+  #levelByNodeId = new Map<string, number>();
 
   async find(query: DataQuery): Promise<Topology[]> {
     const filePath = getDatabaseFilePath("topology.json");
@@ -53,123 +54,120 @@ export class TopologyDuckDbRepository implements TopologyRepository {
   }
 
   refine(data: Topology[]): Topology[] {
+    console.log("Refining topology data...");
     this.#nodeIdParentIdMap.clear();
     this.#finalTopologyData = [];
-    this.#nodeIdLevelMap.clear();
+    this.#rowsByNodeId.clear();
+    this.#levelByNodeId.clear();
 
     this.deduplicateRows(data);
     this.homologateParentId();
+    this.removeCycles();
     this.homologateLevels();
     this.updateHomologedData();
+    console.log("Refining topology data FIN");
 
     return this.#finalTopologyData.length > 0 ? this.#finalTopologyData : data;
   }
 
   private deduplicateRows(data: Topology[]): void {
-    for (const topologyItem of data) {
-      if (topologyItem?.nodeId && topologyItem?.parentId) {
-        if (!this.#nodeIdParentIdMap.has(topologyItem.nodeId)) {
-          this.#nodeIdParentIdMap.set(
-            topologyItem.nodeId,
-            topologyItem.parentId,
-          );
-          this.#finalTopologyData.push(topologyItem);
-        }
+    for (const row of data) {
+      if (
+        !row?.nodeId ||
+        !row?.parentId ||
+        this.#rowsByNodeId.has(row.nodeId)
+      ) {
+        continue;
       }
+
+      this.#rowsByNodeId.set(row.nodeId, row);
+      this.#nodeIdParentIdMap.set(row.nodeId, row.parentId);
     }
   }
 
   private homologateParentId(): void {
-    const nodeIdParentIdMapCopy = new Map<string, string>([
-      ...this.#nodeIdParentIdMap,
-    ]);
-
-    for (const [nodeId, parentId] of nodeIdParentIdMapCopy.entries()) {
+    for (const [nodeId, parentId] of this.#nodeIdParentIdMap) {
       if (
-        !this.#nodeIdParentIdMap.has(parentId) &&
-        parentId !== TOPOLOGY_MAIN_NODE
+        parentId !== TOPOLOGY_MAIN_NODE &&
+        !this.#nodeIdParentIdMap.has(parentId)
       ) {
         this.#nodeIdParentIdMap.set(nodeId, TOPOLOGY_MAIN_NODE);
       }
     }
   }
 
-  private homologateLevels(): void {
-    const nodeIdParentIdMapCopy = new Map<string, string>([
-      ...this.#nodeIdParentIdMap,
-    ]);
-    const nodesWithCycles = new Set<string>();
+  private removeCycles(): void {
+    const finished = new Set<string>();
 
-    for (const [nodeId, _] of nodeIdParentIdMapCopy.entries()) {
-      const nodeLevelInfo = this.getNodeLevel(nodeId, this.#nodeIdParentIdMap);
-      if (nodeLevelInfo.level === TREE_NODE_IN_CYCLE_LEVEL) {
-        this.#nodeIdParentIdMap.set(nodeId, TOPOLOGY_MAIN_NODE);
-        for (const nodeInCycle of nodeLevelInfo.parentsCollected) {
-          nodesWithCycles.add(nodeInCycle);
-        }
-      } else {
-        this.#nodeIdLevelMap.set(nodeId, nodeLevelInfo.level);
+    for (const startNodeId of this.#nodeIdParentIdMap.keys()) {
+      if (finished.has(startNodeId)) continue;
+
+      const path: string[] = [];
+      const pathIndex = new Map<string, number>();
+      let currentNodeId: string | undefined = startNodeId;
+
+      while (
+        currentNodeId !== undefined &&
+        currentNodeId !== TOPOLOGY_MAIN_NODE &&
+        this.#nodeIdParentIdMap.has(currentNodeId) &&
+        !finished.has(currentNodeId) &&
+        !pathIndex.has(currentNodeId)
+      ) {
+        pathIndex.set(currentNodeId, path.length);
+        path.push(currentNodeId);
+        currentNodeId = this.#nodeIdParentIdMap.get(currentNodeId);
       }
-    }
 
-    if (nodesWithCycles.size > 0) {
-      for (const nodeId of nodesWithCycles) {
-        const nodeLevelInfo = this.getNodeLevel(
-          nodeId,
-          this.#nodeIdParentIdMap,
+      if (currentNodeId !== undefined && pathIndex.has(currentNodeId)) {
+        const cycle = path.slice(pathIndex.get(currentNodeId)!);
+        const nodeToReparent = cycle.reduce((smallest, nodeId) =>
+          nodeId < smallest ? nodeId : smallest,
         );
-        this.#nodeIdLevelMap.set(
-          nodeId,
-          nodeLevelInfo.level !== TREE_NODE_IN_CYCLE_LEVEL
-            ? nodeLevelInfo.level
-            : 0,
-        );
+
+        this.#nodeIdParentIdMap.set(nodeToReparent, TOPOLOGY_MAIN_NODE);
+      }
+
+      for (const nodeId of path) {
+        finished.add(nodeId);
       }
     }
   }
 
-  private getNodeLevel(nodeId: string, nodeIdParentIdMap: Map<string, string>) {
-    let currentLevel = 1;
-    let currentNodeId = nodeId;
-    let findLevel = true;
-    const parentsCollected = [];
+  private homologateLevels(): void {
+    for (const startNodeId of this.#nodeIdParentIdMap.keys()) {
+      if (this.#levelByNodeId.has(startNodeId)) continue;
 
-    while (findLevel) {
-      const parent = nodeIdParentIdMap.get(currentNodeId);
+      const path: string[] = [];
+      let currentNodeId = startNodeId;
 
-      if (!parent || parent === TOPOLOGY_MAIN_NODE) {
-        findLevel = false;
-      } else if (parent === nodeId) {
-        findLevel = false;
-        currentLevel = TREE_NODE_IN_CYCLE_LEVEL;
-        parentsCollected.push(nodeId);
-      } else {
-        currentLevel++;
-        currentNodeId = parent;
-        parentsCollected.push(currentNodeId);
+      while (
+        currentNodeId !== TOPOLOGY_MAIN_NODE &&
+        this.#nodeIdParentIdMap.has(currentNodeId) &&
+        !this.#levelByNodeId.has(currentNodeId)
+      ) {
+        path.push(currentNodeId);
+        currentNodeId = this.#nodeIdParentIdMap.get(currentNodeId)!;
       }
 
-      if (currentLevel > 100) {
-        findLevel = false;
+      let level =
+        currentNodeId === TOPOLOGY_MAIN_NODE ||
+        !this.#nodeIdParentIdMap.has(currentNodeId)
+          ? 0
+          : this.#levelByNodeId.get(currentNodeId)!;
+
+      for (let i = path.length - 1; i >= 0; i--) {
+        level += 1;
+        this.#levelByNodeId.set(path[i], level);
       }
     }
-
-    return { level: currentLevel, parentsCollected };
   }
 
   private updateHomologedData() {
-    for (const nodeData of this.#finalTopologyData) {
-      const parentId = this.#nodeIdParentIdMap.get(nodeData.nodeId);
-      const level = this.#nodeIdLevelMap.get(nodeData.nodeId);
-
-      if (parentId !== undefined) {
-        nodeData.parentId = parentId;
-      }
-
-      if (level !== undefined) {
-        nodeData.level = level;
-      }
-    }
+    this.#finalTopologyData = [...this.#rowsByNodeId.values()].map((row) => ({
+      ...row,
+      parentId: this.#nodeIdParentIdMap.get(row.nodeId) ?? row.parentId,
+      level: this.#levelByNodeId.get(row.nodeId)!,
+    }));
   }
 
   private mapRowToTopology(row: Record<string, unknown>): Topology {
