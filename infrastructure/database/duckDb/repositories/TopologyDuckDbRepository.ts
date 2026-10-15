@@ -6,7 +6,8 @@ import {
   executeDuckDBQuery,
   getDatabaseFilePath,
 } from "@/infrastructure/database/duckDb/query";
-import { TOPOLOGY_MAIN_NODE } from "@/lib/constants";
+import { TOPOLOGY_MAIN_NODE, TOPOLOGY_JSON_SOURCE_FILE } from "@/lib/constants";
+import { TopologyDateLimits } from "@/types/topology";
 
 const ALLOWED_FIELDS = {
   timestamp: "timestamp",
@@ -24,7 +25,7 @@ export class TopologyDuckDbRepository implements TopologyRepository {
   #levelByNodeId = new Map<string, number>();
 
   async find(query: DataQuery): Promise<Topology[]> {
-    const filePath = getDatabaseFilePath("topology.json");
+    const filePath = getDatabaseFilePath(TOPOLOGY_JSON_SOURCE_FILE);
 
     const { clause, params } = buildWhereClause(
       query.filters ?? [],
@@ -54,7 +55,6 @@ export class TopologyDuckDbRepository implements TopologyRepository {
   }
 
   refine(data: Topology[]): Topology[] {
-    console.log("Refining topology data...");
     this.#nodeIdParentIdMap.clear();
     this.#finalTopologyData = [];
     this.#rowsByNodeId.clear();
@@ -65,9 +65,37 @@ export class TopologyDuckDbRepository implements TopologyRepository {
     this.removeCycles();
     this.homologateLevels();
     this.updateHomologedData();
-    console.log("Refining topology data FIN");
 
     return this.#finalTopologyData.length > 0 ? this.#finalTopologyData : data;
+  }
+
+  async getDateLimits(query: DataQuery): Promise<TopologyDateLimits> {
+    const filePath = getDatabaseFilePath(TOPOLOGY_JSON_SOURCE_FILE);
+
+    const { clause, params } = buildWhereClause(
+      query.filters ?? [],
+      ALLOWED_FIELDS,
+    );
+
+    const sql = `
+      SELECT
+        strftime(MIN(${ALLOWED_FIELDS.timestamp}), '%Y-%m-%d') as min_date,
+        strftime(MAX(${ALLOWED_FIELDS.timestamp}), '%Y-%m-%d') as max_date
+      FROM read_json_auto($filePath)
+      ${clause}
+    `;
+
+    const rows = await executeDuckDBQuery(sql, {
+      filePath,
+      ...params,
+    });
+
+    return rows.length > 0
+      ? {
+          minDate: rows[0]["min_date"]?.toString() ?? "",
+          maxDate: rows[0]["max_date"]?.toString() ?? "",
+        }
+      : { minDate: "", maxDate: "" };
   }
 
   private deduplicateRows(data: Topology[]): void {

@@ -14,18 +14,20 @@ export async function POST(request: Request) {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
     const repository = new TopologyDuckDbRepository();
     const useCase = new QueryTopology(repository);
 
-    const data = await useCase.execute(reqData);
+    const topologyReturn = await useCase.execute(reqData);
+    const { data, dateLimits } = topologyReturn;
 
     return Response.json({
       data,
       count: data.length,
+      dateLimits,
     });
   } catch (error) {
     console.log("Error processing request:", error);
