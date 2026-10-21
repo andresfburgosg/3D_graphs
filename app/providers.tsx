@@ -18,12 +18,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     window.__TANSTACK_QUERY_CLIENT__ = queryClient;
   }*/
 
+  const scriptProps =
+    typeof window === "undefined"
+      ? undefined
+      : ({ type: "application/json" } as const);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider
         attribute="class"
         defaultTheme="light"
         enableSystem={false}
+        scriptProps={scriptProps}
       >
         {children}
         <ReactQueryDevtools initialIsOpen={false} />
