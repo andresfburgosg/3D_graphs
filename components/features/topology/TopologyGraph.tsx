@@ -1,77 +1,51 @@
 "use client";
 
+import { useEffect, useLayoutEffect, useRef } from "react";
 import CalendarInput from "@/components/ui/CalendarInput";
 import { topologyQueryOptions } from "@/helpers/topology.query";
+import useTopologyGraphFilters from "@/hooks/useTopologyGraphFilters";
 import { useQuery } from "@tanstack/react-query";
-import ClientPortal from "../common/ClientPortal";
-import { useCallback, useEffect, useMemo, useReducer } from "react";
-import { DataQuery } from "@/types/datasource";
-import {
-  TopologyGraphProps,
-  TopologyFilterFields,
-  FilterAction,
-} from "@/types/topology";
-
-const INITIAL_FILTER_FIELDS: TopologyFilterFields = {
-  minDate: "",
-  maxDate: "",
-};
-
-function filterFieldsReducer(
-  state: TopologyFilterFields,
-  action: FilterAction,
-) {
-  switch (action.type) {
-    case "SET_MIN_DATE":
-      return { ...state, minDate: action.payload };
-    case "SET_MAX_DATE":
-      return { ...state, maxDate: action.payload };
-    default:
-      return state;
-  }
-}
+import ClientPortal from "@/components/features/common/ClientPortal";
+import { TopologyGraphProps } from "@/types/topology";
+import useTopologyGraphData from "@/hooks/useTopologyGraphData";
+import TopologyGraphCanvas from "./TopologyGraphCanvas";
+import { useTopologyGraphContext } from "@/context/topology/TopologyGraphContext";
 
 export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
-  const [filters, dispatch] = useReducer(
-    filterFieldsReducer,
-    INITIAL_FILTER_FIELDS,
-  );
+  const graphContainer = useRef<HTMLDivElement | null>(null);
+  const { dispatch } = useTopologyGraphContext();
 
-  const queryFilter = useMemo(() => {
-    const queryFilterVal: DataQuery = { filters: [] };
-
-    if (filters.minDate !== "") {
-      queryFilterVal?.filters?.push({
-        field: "timestamp",
-        operator: "gte",
-        value: filters.minDate,
-      });
-    }
-
-    if (filters.maxDate !== "") {
-      queryFilterVal?.filters?.push({
-        field: "timestamp",
-        operator: "lte",
-        value: filters.maxDate,
-      });
-    }
-
-    return queryFilterVal?.filters !== undefined &&
-      queryFilterVal?.filters?.length > 0
-      ? queryFilterVal
-      : {};
-  }, [filters.maxDate, filters.minDate]);
-  const { data, isLoading, error } = useQuery(
+  const { filters, queryFilter, setMaxDate, setMinDate } =
+    useTopologyGraphFilters();
+  const { data, isLoading, error, isSuccess } = useQuery(
     topologyQueryOptions(queryFilter),
   );
+  const { processedData } = useTopologyGraphData({
+    data,
+    isLoading,
+    error,
+    isSuccess,
+  });
 
-  const setMinDate = useCallback((value: string) => {
-    dispatch({ type: "SET_MIN_DATE", payload: value });
-  }, []);
+  useLayoutEffect(() => {
+    if (!graphContainer.current) {
+      return;
+    }
 
-  const setMaxDate = useCallback((value: string) => {
-    dispatch({ type: "SET_MAX_DATE", payload: value });
-  }, []);
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        dispatch({ type: "SET_WIDTH", payload: width });
+        dispatch({ type: "SET_HEIGHT", payload: height });
+      }
+    });
+
+    resizeObserver.observe(graphContainer.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     if (filters.minDate === "" && data.dateLimits.minDate !== "") {
@@ -87,16 +61,10 @@ export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
   if (error) return <div>Error: {error.message}</div>;
 
   console.log("Topology data (useQuery):", data);
+  console.log("Topology data (processed):", processedData);
   return (
-    <div className="w-full h-full">
-      <h1>Topology Graph</h1>
-      <p>
-        Reducer values: {filters.minDate} - {filters.maxDate}
-      </p>
-      <p>
-        data query values: {data.dateLimits.minDate} - {data.dateLimits.maxDate}
-      </p>
-      <p>total rows: {data.data.length}</p>
+    <div ref={graphContainer} className="w-full h-full min-h-112.5">
+      <TopologyGraphCanvas />
       <ClientPortal selector={`#${graphKey}-controls`}>
         <CalendarInput
           minDate={filters.minDate}
