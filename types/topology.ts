@@ -1,4 +1,6 @@
+import * as THREE from "three";
 import { ForceGraphMethods, NodeObject } from "react-force-graph-3d";
+import type { TopologyInstanceRenderer } from "@/lib/rendering/topologyInstanceRenderer";
 
 export interface TopologyDateLimits {
   minDate: string;
@@ -44,14 +46,18 @@ export type TopologyGraphNode = {
 };
 
 export type TopologyGraphLink = {
-  source: string;
-  target: string;
+  source: string | TopologyGraphNode;
+  target: string | TopologyGraphNode;
 };
 
 export type TopologyGraphData = {
   nodes: TopologyGraphNode[];
   links: TopologyGraphLink[];
 };
+
+export type TopologyGraphReference = React.MutableRefObject<
+  ForceGraphMethods<NodeObject<TopologyGraphNode>> | undefined
+>;
 
 export interface TopologyGraphContextState {
   graphData: TopologyGraphData;
@@ -174,14 +180,60 @@ export type TopologyGraphContextAction =
 export type TopologyGraphContextValue = {
   state: TopologyGraphContextState;
   dispatch: React.Dispatch<TopologyGraphContextAction>;
-  graphRef: React.MutableRefObject<
-    ForceGraphMethods<NodeObject<TopologyGraphNode>> | undefined
-  >;
+  graphRef: TopologyGraphReference;
   setNodeRelSize: () => number;
-  onEngineStop: () => void;
+  onEngineStop: (fitFn?: () => boolean) => void;
   nodeColorFn: (node: TopologyGraphNode) => string;
   onNodeDragEnd: (node: TopologyGraphNode) => void;
   onEngineTick: () => void;
   themeBackground: () => string;
   linkColorFn: () => string;
 };
+
+export type TopologyInstanceRendererOptions = {
+  nodeColor: (node: TopologyGraphNode) => string;
+  linkColor: () => string;
+  nodeOpacity: number;
+  linkOpacity: number;
+  linkWidth: number;
+  baseNodeRadius: number;
+};
+
+export interface UseTopologyInstanceInteractions {
+  graphRef: TopologyGraphReference;
+  rendererRef: React.MutableRefObject<TopologyInstanceRenderer | null>;
+  onNodeDragEnd: (node: TopologyGraphNode) => void;
+}
+
+export type TopologyGraphControlsWithEvents = {
+  enabled: boolean;
+  addEventListener(type: "change" | "end", listener: () => void): void;
+  removeEventListener(type: "change" | "end", listener: () => void): void;
+};
+
+export type TopologyTooltipData = {
+  id: string;
+  metric: number;
+  source: string;
+  timestamp: string;
+  x: number;
+  y: number;
+};
+
+export type TopologyDragGestureProps = {
+  pointerId: number;
+  nodeIndex: number;
+  node: TopologyGraphNode;
+  startX: number;
+  startY: number;
+  moved: boolean;
+  previousControlsEnabled: boolean;
+  plane: THREE.Plane;
+  pointerOffset: THREE.Vector3;
+};
+
+export interface UseTopologyInstanceRenderer {
+  graphRef: TopologyGraphReference;
+  graphData: TopologyGraphData;
+  options: TopologyInstanceRendererOptions;
+}

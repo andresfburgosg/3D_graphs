@@ -8,7 +8,6 @@ const CalendarInput: React.FC<CalendarInputProps> = ({
   setMinDate,
   setMaxDate,
 }) => {
-  console.log("Calendar Props: ", { minDate, maxDate });
   const datePickerRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
