@@ -113,29 +113,39 @@ export function TopologyGraphContextProvider({ children }: PropsWithChildren) {
     ForceGraphMethods<NodeObject<TopologyGraphNode>> | undefined
   >(undefined);
 
+  const nodeColorSelector = useMemo(
+    () => new NodeColorSelector(new MetricOneStrategy()),
+    [],
+  );
+
   const actions = useMemo(
     () => ({
       setNodeRelSize: () => {
         const minRadius = 6;
-        const maxRadius = 18;
-        const scalingFactor = 0.75;
+        const maxRadius = 28;
 
-        const radiusCalc =
-          Math.cbrt(state.graphData.nodes.length ?? 4) * scalingFactor;
+        const radiusCalc = Math.cbrt(state.graphData.nodes.length ?? 4) * 1.5;
 
         return Math.max(minRadius, Math.min(maxRadius, radiusCalc));
       },
-      onEngineStop: () => {
-        if (state.firstTimeZoom === true) {
-          graphRef.current?.zoomToFit(500);
+      onEngineStop: (fitGraphFn?: () => boolean) => {
+        if (
+          !state.firstTimeZoom ||
+          state.graphData.nodes.length === 0 ||
+          !graphRef.current
+        )
+          return;
+
+        const fitted = fitGraphFn
+          ? fitGraphFn()
+          : (graphRef.current?.zoomToFit(500, 40), true);
+
+        if (fitted) {
           dispatch({ type: "SET_FIRST_TIME_ZOOM", payload: false });
         }
       },
-      nodeColorFn: (node: TopologyGraphNode) => {
-        const metricStrategy = new MetricOneStrategy();
-        const nodeColorSelector = new NodeColorSelector(metricStrategy);
-        return nodeColorSelector.colorFunction(node);
-      },
+      nodeColorFn: (node: TopologyGraphNode) =>
+        nodeColorSelector.colorFunction(node),
       onNodeDragEnd: (node: TopologyGraphNode) => {
         node.fx = node.x;
         node.fy = node.y;
@@ -151,7 +161,12 @@ export function TopologyGraphContextProvider({ children }: PropsWithChildren) {
           (theme ?? "light") as keyof typeof topologyThemeLinkColor
         ],
     }),
-    [state.firstTimeZoom, state.graphData.nodes.length, theme],
+    [
+      nodeColorSelector,
+      state.firstTimeZoom,
+      state.graphData.nodes.length,
+      theme,
+    ],
   );
 
   const providerValue = useMemo(

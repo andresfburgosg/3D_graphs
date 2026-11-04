@@ -16,6 +16,8 @@ export const topologyMetricOneColors = [
 export const topologyNodeColorsDefault = Object.freeze({
   error: "ffffff",
   main: "6495ed",
+  selected: "fb7185",
+  hovered: "ffffff",
 });
 export const topologyThemeBackground = Object.freeze({
   light: "#fafafa",
