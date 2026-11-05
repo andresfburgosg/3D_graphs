@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import CalendarInput from "@/components/ui/CalendarInput";
 import { topologyQueryOptions } from "@/helpers/topology.query";
 import useTopologyGraphFilters from "@/hooks/useTopologyGraphFilters";
@@ -10,10 +10,17 @@ import { TopologyGraphProps } from "@/types/topology";
 import useTopologyGraphData from "@/hooks/useTopologyGraphData";
 import TopologyGraphCanvas from "./TopologyGraphCanvas";
 import { useTopologyGraphContext } from "@/context/topology/TopologyGraphContext";
+import { GraphTabButtonProps } from "@/types/ui";
+import GraphTabButtons from "@/components/ui/GraphTabButtons";
+
+const topologyGraphLayoutTabs: GraphTabButtonProps[] = [
+  { title: "Top Down", value: "td" },
+  { title: "Radial", value: "radialout" },
+];
 
 export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
   const graphContainer = useRef<HTMLDivElement | null>(null);
-  const { dispatch } = useTopologyGraphContext();
+  const { state, dispatch } = useTopologyGraphContext();
 
   const { filters, queryFilter, setMaxDate, setMinDate } =
     useTopologyGraphFilters();
@@ -26,6 +33,23 @@ export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
     error,
     isSuccess,
   });
+
+  const handleGraphLayoutChange = useCallback(
+    (value: string) => {
+      const valueFormatted = value as
+        | "td"
+        | "radialout"
+        | "bu"
+        | "lr"
+        | "rl"
+        | "zout"
+        | "zin"
+        | "radialin";
+
+      dispatch({ type: "SET_LAYOUT", payload: valueFormatted });
+    },
+    [dispatch],
+  );
 
   useLayoutEffect(() => {
     if (!graphContainer.current) {
@@ -66,6 +90,11 @@ export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
     <div ref={graphContainer} className="w-full h-full min-h-112.5">
       <TopologyGraphCanvas />
       <ClientPortal selector={`#${graphKey}-controls`}>
+        <GraphTabButtons
+          buttons={topologyGraphLayoutTabs}
+          activeTabValue={state.layout}
+          onTabChange={handleGraphLayoutChange}
+        />
         <CalendarInput
           minDate={filters.minDate}
           maxDate={filters.maxDate}

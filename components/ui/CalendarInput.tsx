@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import flatpickr from "flatpickr";
 import { CalendarInputProps } from "@/types/ui";
+import { MdCalendarMonth } from "react-icons/md";
 
 const CalendarInput: React.FC<CalendarInputProps> = ({
   minDate,
@@ -69,6 +70,7 @@ const CalendarInput: React.FC<CalendarInputProps> = ({
 
   return (
     <div className="relative inline-flex items-center">
+      <MdCalendarMonth className="pointer-events-none absolute inset-s-1/2 top-1/2 z-10 size-5 -translate-x-1/2 -translate-y-1/2 text-gray-500 lg:inset-s-3 lg:top-1/2 lg:translate-x-0 lg:-translate-y-1/2 rtl:translate-x-1/2 rtl:lg:translate-x-0 dark:text-gray-400" />
       <input
         ref={datePickerRef}
         className="h-10 w-10 cursor-pointer rounded-lg border border-gray-200 bg-white text-sm font-medium text-transparent outline-none lg:h-auto lg:w-40 lg:py-2 lg:ps-10 lg:pe-3 lg:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:lg:text-gray-300"

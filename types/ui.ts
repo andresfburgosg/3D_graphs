@@ -16,3 +16,14 @@ export type GraphContainerProps = {
   graphKey: string;
   children: React.ReactNode;
 };
+
+export type GraphTabButtonProps = {
+  title: string;
+  value: string;
+};
+
+export type GraphTabButtonsProps = {
+  buttons: GraphTabButtonProps[];
+  activeTabValue: string;
+  onTabChange: (value: string) => void;
+};
