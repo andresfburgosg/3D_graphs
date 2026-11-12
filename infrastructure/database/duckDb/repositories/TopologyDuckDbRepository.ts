@@ -8,6 +8,7 @@ import {
 } from "@/infrastructure/database/duckDb/query";
 import { TOPOLOGY_MAIN_NODE, TOPOLOGY_JSON_SOURCE_FILE } from "@/lib/constants";
 import { TopologyDateLimits } from "@/types/topology";
+import { diffInDays } from "@/helpers/common";
 
 const ALLOWED_FIELDS = {
   timestamp: "timestamp",
@@ -90,12 +91,22 @@ export class TopologyDuckDbRepository implements TopologyRepository {
       ...params,
     });
 
-    return rows.length > 0
-      ? {
-          minDate: rows[0]["min_date"]?.toString() ?? "",
-          maxDate: rows[0]["max_date"]?.toString() ?? "",
-        }
-      : { minDate: "", maxDate: "" };
+    let minDate = "";
+    let maxDate = "";
+    if (rows && rows.length > 0) {
+      minDate = rows[0]["min_date"]?.toString() ?? "";
+      maxDate = rows[0]["max_date"]?.toString() ?? "";
+
+      const diffDays = diffInDays(minDate, maxDate);
+
+      if (diffDays <= 1) {
+        const maxDatePlusOne = new Date(maxDate);
+        maxDatePlusOne.setDate(maxDatePlusOne.getDate() + 1);
+        maxDate = maxDatePlusOne.toISOString().split("T")[0];
+      }
+    }
+
+    return { minDate, maxDate };
   }
 
   private deduplicateRows(data: Topology[]): void {
