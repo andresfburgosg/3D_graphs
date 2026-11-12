@@ -28,10 +28,12 @@ const useGlobeGraphData = ({
     return arcsData;
   }, [data.arcs, error, isLoading, isSuccess]);
 
-  const heatmapsDataMemo = useMemo((): Globe[] => {
-    let heatmapsData: Globe[] = [];
+  const heatmapsDataMemo = useMemo((): Globe[][] => {
+    let heatmapsData: Globe[][] = [];
     if (!isLoading && !error && isSuccess) {
-      heatmapsData = data.nodes as Globe[];
+      // Globe.gl expects each heatmap entry to contain its own point array.
+      // A single group gives us one heatmap layer over all node locations.
+      heatmapsData = [(data.nodes ?? []) as Globe[]];
     }
     return heatmapsData;
   }, [data.nodes, error, isLoading, isSuccess]);

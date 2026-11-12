@@ -29,13 +29,12 @@ export default function GlobeGraph({ graphKey }: GlobeGraphProps) {
     globeQueryOptions(queryFilter),
   );
 
-  const { pointsData, arcsData, heatmapsData, minMetric, maxMetric } =
-    useGlobeGraphData({
-      data,
-      isLoading,
-      error,
-      isSuccess,
-    });
+  useGlobeGraphData({
+    data,
+    isLoading,
+    error,
+    isSuccess,
+  });
 
   const handleGraphTypeChange = useCallback(
     (value: string) => {
@@ -79,14 +78,6 @@ export default function GlobeGraph({ graphKey }: GlobeGraphProps) {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  console.log("Globe data (useQuery):", { data, isSuccess, isLoading, error });
-  console.log("Globe data (useGlobeGraphData):", {
-    pointsData,
-    arcsData,
-    heatmapsData,
-    minMetric,
-    maxMetric,
-  });
   return (
     <div ref={graphContainer} className="w-full h-full min-h-112.5">
       <GlobeGraphCanvas />

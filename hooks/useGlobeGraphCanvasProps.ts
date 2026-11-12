@@ -10,6 +10,8 @@ const useGlobeGraphCanvasProps = () => {
       case "points":
         return {
           pointsData: state.pointsData,
+          arcsData: [],
+          heatmapsData: [],
           pointLat: "targetLatitude",
           pointLng: "targetLongitude",
           pointAltitude: (point: object) => pointAltitudeFn(point as Globe),
@@ -19,7 +21,9 @@ const useGlobeGraphCanvasProps = () => {
         };
       case "arcs":
         return {
+          pointsData: [],
           arcsData: state.arcsData,
+          heatmapsData: [],
           arcColor: state.arcColor,
           arcDashLength: state.arcDashLength,
           arcDashGap: state.arcDashGap,
@@ -28,6 +32,8 @@ const useGlobeGraphCanvasProps = () => {
         };
       case "heatmaps":
         return {
+          pointsData: [],
+          arcsData: [],
           heatmapsData: state.heatmapsData,
           heatmapPointLat: state.heatmapPointLat,
           heatmapPointLng: state.heatmapPointLng,

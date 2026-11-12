@@ -51,7 +51,7 @@ export interface GlobeGraphContextState {
   globeLoading: boolean;
   pointsData: Globe[];
   arcsData: GlobeArcData[];
-  heatmapsData: Globe[];
+  heatmapsData: Globe[][];
   arcColor: string[] | string;
   arcDashLength: number;
   arcDashGap: number;
@@ -94,7 +94,7 @@ export type GlobeGraphContextAction =
     }
   | {
       type: "SET_HEATMAPS_DATA";
-      payload: Globe[];
+      payload: Globe[][];
     }
   | {
       type: "SET_ARC_COLOR";
