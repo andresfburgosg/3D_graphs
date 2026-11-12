@@ -27,7 +27,7 @@ export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
   const { data, isLoading, error, isSuccess } = useQuery(
     topologyQueryOptions(queryFilter),
   );
-  const { processedData } = useTopologyGraphData({
+  useTopologyGraphData({
     data,
     isLoading,
     error,
@@ -84,8 +84,6 @@ export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  console.log("Topology data (useQuery):", data);
-  console.log("Topology data (processed):", processedData);
   return (
     <div ref={graphContainer} className="w-full h-full min-h-112.5">
       <TopologyGraphCanvas />

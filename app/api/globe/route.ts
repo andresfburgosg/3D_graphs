@@ -5,14 +5,10 @@ import z from "zod";
 
 export async function POST(request: Request) {
   try {
-    //console.log("GLOBE - Received request:", request);
     const reqData = await request.json();
-    //console.log("GLOBE - reqData:", reqData);
     const validation = dataQuerySchema.safeParse(reqData);
-    //console.log("GLOBE - validation:", validation);
 
     if (!validation.success) {
-      //console.log("GLOBE - validation failed:", validation.success);
       return new Response(
         JSON.stringify({ error: z.flattenError(validation.error).fieldErrors }),
         {
@@ -26,7 +22,6 @@ export async function POST(request: Request) {
     const useCase = new QueryGlobe(repository);
 
     const GlobeReturn = await useCase.execute(reqData);
-    console.log("GLOBE - GlobeReturn:", GlobeReturn);
     const { nodes, arcs, dateLimits } = GlobeReturn;
 
     return Response.json({
