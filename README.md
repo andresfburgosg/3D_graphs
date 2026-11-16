@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 3D Graphs Dashboard
 
-## Getting Started
+An interactive analytics dashboard for exploring network topology and geographic activity in 3D. The project is built with Next.js, React, Three.js, and the Vasturiano graph libraries.
 
-First, run the development server:
+## Highlights
+
+- **Topology graph:** explore connected nodes in top-down or radial layouts.
+- **Globe graph:** inspect geographic data as points, animated arcs, or a heatmap.
+- **Date filtering:** filter both visualizations by a shared minimum and maximum timestamp.
+- **Interactive exploration:** navigate and inspect the 3D visualizations, with graph data refreshed through the dashboard API.
+- **Data validation:** incoming topology and globe data is validated before it is used by the visualizations.
+
+## Getting started
+
+### Requirements
+
+- Node.js (LTS recommended)
+- npm
+
+### Install and run
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000), then choose **Visit dashboard** to open the visualizations.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Data and configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The dashboard requests topology and globe data from `POST /api/topology` and `POST /api/globe`. The repository includes sample data in [`data/topology.json`](./data/topology.json) and [`data/globe.json`](./data/globe.json); the API routes and repository layer provide the data used by the graphs.
 
-## Learn More
+Set `NEXT_PUBLIC_SITE_URL` when the app needs to call its API through a specific site origin. It can be left unset for local development, where requests use the current origin.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server. |
+| `npm run build` | Build the production app. |
+| `npm run start` | Serve the production build. |
+| `npm run lint` | Run ESLint. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Built with
 
-## Deploy on Vercel
+- [Next.js](https://nextjs.org/) and [React](https://react.dev/)
+- [Three.js](https://threejs.org/)
+- [react-force-graph-3d](https://github.com/vasturiano/react-force-graph)
+- [react-globe.gl](https://github.com/vasturiano/react-globe.gl)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [TanStack Query](https://tanstack.com/query)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Author
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Andres Burgos** — credited in the project’s Git history.
