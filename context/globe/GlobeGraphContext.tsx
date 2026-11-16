@@ -30,6 +30,7 @@ const INITIAL_PROPS_CONTEXT: GlobeGraphContextState = {
   globeType: "points",
   globeImageUrl: "/globe_map.jpg",
   globeLoading: true,
+  noData: false,
   pointsData: [],
   arcsData: [],
   heatmapsData: [],
@@ -66,6 +67,8 @@ function globeGraphContextReducer(
       return { ...state, globeImageUrl: action.payload };
     case "SET_GLOBE_LOADING":
       return { ...state, globeLoading: action.payload };
+    case "SET_NO_DATA":
+      return { ...state, noData: action.payload };
     case "SET_POINTS_DATA":
       return { ...state, pointsData: action.payload };
     case "SET_ARCS_DATA":
@@ -137,7 +140,7 @@ export function GlobeGraphContextProvider({ children }: PropsWithChildren) {
           GLOBE_MAX_SCALING,
         ),
       showGlobeAtmosphereFn: () =>
-        state.globeLoading === false && state.pointsData.length > 0,
+        state.globeLoading === false && state.arcsData.length > 0,
       pointColorFn: (node: Globe) => {
         if (state.pointColor === "color" && node?.color) {
           return node.color;
@@ -149,7 +152,7 @@ export function GlobeGraphContextProvider({ children }: PropsWithChildren) {
       state.minMetric,
       state.maxMetric,
       state.globeLoading,
-      state.pointsData.length,
+      state.arcsData.length,
       state.pointColor,
       globeColorSelector,
     ],

@@ -21,6 +21,17 @@ const ALLOWED_FIELDS = {
   sourceLongitude: "sourceLongitude",
 } as const;
 
+const ALLOWED_FIELDS_TYPES = {
+  timestamp: "TIMESTAMP",
+  targetId: "VARCHAR",
+  sourceId: "VARCHAR",
+  metricOne: "DOUBLE",
+  targetLatitude: "DOUBLE",
+  targetLongitude: "DOUBLE",
+  sourceLatitude: "DOUBLE",
+  sourceLongitude: "DOUBLE",
+} as const;
+
 export class GlobeDuckDbRepository implements GlobeRepository {
   #targetIdSourceIdMap = new Map<string, string>();
   #finalGlobeData: Globe[] = [];
@@ -53,13 +64,10 @@ export class GlobeDuckDbRepository implements GlobeRepository {
       ${limit}
     `;
 
-    console.log("GlobeDuckDbRepository - Executing SQL:", sql);
-
     const rows = await executeDuckDBQuery(sql, {
       filePath,
       ...params,
     });
-    console.log("GlobeDuckDbRepository - Retrieved rows:", rows);
 
     return rows.map(this.mapRowToGlobe);
   }
@@ -96,7 +104,9 @@ export class GlobeDuckDbRepository implements GlobeRepository {
       SELECT
         strftime(MIN(${ALLOWED_FIELDS.timestamp}), '%Y-%m-%d') as min_date,
         strftime(MAX(${ALLOWED_FIELDS.timestamp}), '%Y-%m-%d') as max_date
-      FROM read_json_auto($filePath)
+      FROM read_json_auto($filePath, columns = {
+        ${ALLOWED_FIELDS.timestamp}: '${ALLOWED_FIELDS_TYPES.timestamp}'
+      })
       ${clause}
     `;
 
@@ -124,54 +134,20 @@ export class GlobeDuckDbRepository implements GlobeRepository {
   }
 
   private deduplicateRows(data: Globe[]): void {
-    console.log(
-      "GlobeDuckDbRepository - Deduplicating rows:",
-      data.length,
-      data[0],
-    );
-    let skippedCount = 0;
-    let added = 0;
-    let rows = 0;
     for (const row of data) {
-      if (rows < 10) {
-        console.log(
-          "GlobeDuckDbRepository - Processing row:",
-          row,
-          !row?.targetId,
-          !row?.sourceId,
-          this.#rowsByTargetId.has(row.targetId),
-        );
-      }
-      rows++;
       if (
         !row?.targetId ||
         !row?.sourceId ||
         this.#rowsByTargetId.has(row.targetId)
       ) {
-        skippedCount++;
         continue;
       }
 
-      added++;
       this.#rowsByTargetId.set(row.targetId, row);
       this.#targetIdSourceIdMap.set(row.targetId, row.sourceId);
       this.#latitudeData.push(row.targetLatitude ?? 0);
       this.#longitudeData.push(row.targetLongitude ?? 0);
     }
-
-    console.log(
-      "GlobeDuckDbRepository - Deduplicated rows count:",
-      this.#rowsByTargetId.size,
-      this.#targetIdSourceIdMap.size,
-    );
-    console.log("GlobeDuckDbRepository - Latitude data:", this.#latitudeData);
-    console.log("GlobeDuckDbRepository - Longitude data:", this.#longitudeData);
-    console.log(
-      "GlobeDuckDbRepository - Skipped rows count:",
-      skippedCount,
-      "Added rows count:",
-      added,
-    );
   }
 
   private getMapCenter(): void {

@@ -27,6 +27,7 @@ import { ForceGraphMethods, NodeObject } from "react-force-graph-3d";
 
 const INITIAL_PROPS_CONTEXT: TopologyGraphContextState = {
   graphData: { nodes: [], links: [] },
+  noData: false,
   layout: "td",
   dagLevelDistance: undefined,
   nodeVal: 2,
@@ -56,6 +57,8 @@ function topologyGraphContextReducer(
   switch (action.type) {
     case "SET_GRAPH_DATA":
       return { ...state, graphData: action.payload };
+    case "SET_NO_DATA":
+      return { ...state, noData: action.payload };
     case "SET_LAYOUT":
       return { ...state, layout: action.payload };
     case "SET_DAG_LEVEL_DS":

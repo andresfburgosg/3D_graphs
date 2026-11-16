@@ -42,3 +42,12 @@ export const GLOBE_MAX_SCALING = 0.2;
 
 export const globeMetricOneIndexes = [30, 60, 90];
 export const globeMetricOneColors = ["8b0000", "90ee90", "008080"];
+
+export const noDataMessageDefault = "No data to show with this filter.";
+
+export const mainPageTexts = Object.freeze({
+  title: "Welcome!",
+  description:
+    "Dashboard built over Nextjs, Tailwind, Threejs and Vasturiano 3D plugins.",
+  callToAction: "Visit dashboard",
+});

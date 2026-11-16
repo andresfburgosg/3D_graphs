@@ -49,6 +49,7 @@ export interface GlobeGraphContextState {
   globeType: GlobeGraphCanvasType;
   globeImageUrl: string;
   globeLoading: boolean;
+  noData: boolean;
   pointsData: Globe[];
   arcsData: GlobeArcData[];
   heatmapsData: Globe[][];
@@ -82,6 +83,10 @@ export type GlobeGraphContextAction =
     }
   | {
       type: "SET_GLOBE_LOADING";
+      payload: boolean;
+    }
+  | {
+      type: "SET_NO_DATA";
       payload: boolean;
     }
   | {

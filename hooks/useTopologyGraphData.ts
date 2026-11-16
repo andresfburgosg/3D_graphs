@@ -56,9 +56,18 @@ const useTopologyGraphData = ({
   }, [data.data, error, isLoading, isSuccess]);
 
   useEffect(() => {
+    if (isLoading === true) {
+      dispatch({ type: "SET_NO_DATA", payload: false });
+    }
+  }, [dispatch, isLoading]);
+
+  useEffect(() => {
     dispatch({ type: "SET_GRAPH_DATA", payload: processedData });
     dispatch({ type: "SET_FIRST_TIME_ZOOM", payload: true });
-  }, [dispatch, processedData]);
+    if (!isLoading) {
+      dispatch({ type: "SET_NO_DATA", payload: !processedData.nodes.length });
+    }
+  }, [dispatch, isLoading, processedData]);
 
   return {
     processedData,
