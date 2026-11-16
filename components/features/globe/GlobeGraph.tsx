@@ -12,6 +12,9 @@ import useGlobeGraphData from "@/hooks/useGlobeGraphData";
 import GlobeGraphCanvas from "./GlobeGraphCanvas";
 import { GraphTabButtonProps } from "@/types/ui";
 import GraphTabButtons from "@/components/ui/GraphTabButtons";
+import GraphLoader from "@/components/ui/GraphLoader";
+import GraphPopup from "@/components/ui/GraphPopup";
+import { noDataMessageDefault } from "@/lib/constants";
 
 const globeGraphTypeTabs: GraphTabButtonProps[] = [
   { title: "Points", value: "points" },
@@ -46,7 +49,7 @@ export default function GlobeGraph({ graphKey }: GlobeGraphProps) {
   );
 
   useLayoutEffect(() => {
-    if (!graphContainer.current) {
+    if (!graphContainer.current || isLoading) {
       return;
     }
 
@@ -63,7 +66,7 @@ export default function GlobeGraph({ graphKey }: GlobeGraphProps) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [dispatch]);
+  }, [dispatch, isLoading]);
 
   useEffect(() => {
     if (filters.minDate === "" && data.dateLimits.minDate !== "") {
@@ -75,11 +78,12 @@ export default function GlobeGraph({ graphKey }: GlobeGraphProps) {
     }
   }, [data, filters.maxDate, filters.minDate, setMaxDate, setMinDate]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <GraphLoader className="w-full h-full min-h-112.5" />;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div ref={graphContainer} className="w-full h-full min-h-112.5">
+    <div ref={graphContainer} className="w-full h-full min-h-112.5 relative">
+      {state.noData ? <GraphPopup message={noDataMessageDefault} /> : <></>}
       <GlobeGraphCanvas />
       <ClientPortal selector={`#${graphKey}-controls`}>
         <GraphTabButtons

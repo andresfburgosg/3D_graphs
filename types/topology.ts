@@ -61,6 +61,7 @@ export type TopologyGraphReference = React.MutableRefObject<
 
 export interface TopologyGraphContextState {
   graphData: TopologyGraphData;
+  noData: boolean;
   layout: "td" | "radialout" | "bu" | "lr" | "rl" | "zout" | "zin" | "radialin";
   dagLevelDistance: number | undefined;
   nodeVal: number | string;
@@ -87,6 +88,10 @@ export type TopologyGraphContextAction =
   | {
       type: "SET_GRAPH_DATA";
       payload: TopologyGraphData;
+    }
+  | {
+      type: "SET_NO_DATA";
+      payload: boolean;
     }
   | {
       type: "SET_LAYOUT";

@@ -12,6 +12,9 @@ import TopologyGraphCanvas from "./TopologyGraphCanvas";
 import { useTopologyGraphContext } from "@/context/topology/TopologyGraphContext";
 import { GraphTabButtonProps } from "@/types/ui";
 import GraphTabButtons from "@/components/ui/GraphTabButtons";
+import GraphLoader from "@/components/ui/GraphLoader";
+import GraphPopup from "@/components/ui/GraphPopup";
+import { noDataMessageDefault } from "@/lib/constants";
 
 const topologyGraphLayoutTabs: GraphTabButtonProps[] = [
   { title: "Top Down", value: "td" },
@@ -52,7 +55,7 @@ export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
   );
 
   useLayoutEffect(() => {
-    if (!graphContainer.current) {
+    if (!graphContainer.current || isLoading) {
       return;
     }
 
@@ -69,7 +72,7 @@ export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [dispatch]);
+  }, [dispatch, isLoading]);
 
   useEffect(() => {
     if (filters.minDate === "" && data.dateLimits.minDate !== "") {
@@ -81,11 +84,12 @@ export default function TopologyGraph({ graphKey }: TopologyGraphProps) {
     }
   }, [data, filters.maxDate, filters.minDate, setMaxDate, setMinDate]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <GraphLoader className="w-full h-full min-h-112.5" />;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div ref={graphContainer} className="w-full h-full min-h-112.5">
+    <div ref={graphContainer} className="w-full h-full min-h-112.5 relative">
+      {state.noData ? <GraphPopup message={noDataMessageDefault} /> : <></>}
       <TopologyGraphCanvas />
       <ClientPortal selector={`#${graphKey}-controls`}>
         <GraphTabButtons

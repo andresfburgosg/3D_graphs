@@ -21,6 +21,17 @@ const ALLOWED_FIELDS = {
   sourceLongitude: "sourceLongitude",
 } as const;
 
+const ALLOWED_FIELDS_TYPES = {
+  timestamp: "TIMESTAMP",
+  targetId: "VARCHAR",
+  sourceId: "VARCHAR",
+  metricOne: "DOUBLE",
+  targetLatitude: "DOUBLE",
+  targetLongitude: "DOUBLE",
+  sourceLatitude: "DOUBLE",
+  sourceLongitude: "DOUBLE",
+} as const;
+
 export class GlobeDuckDbRepository implements GlobeRepository {
   #targetIdSourceIdMap = new Map<string, string>();
   #finalGlobeData: Globe[] = [];
@@ -93,7 +104,9 @@ export class GlobeDuckDbRepository implements GlobeRepository {
       SELECT
         strftime(MIN(${ALLOWED_FIELDS.timestamp}), '%Y-%m-%d') as min_date,
         strftime(MAX(${ALLOWED_FIELDS.timestamp}), '%Y-%m-%d') as max_date
-      FROM read_json_auto($filePath)
+      FROM read_json_auto($filePath, columns = {
+        ${ALLOWED_FIELDS.timestamp}: '${ALLOWED_FIELDS_TYPES.timestamp}'
+      })
       ${clause}
     `;
 

@@ -27,3 +27,13 @@ export type GraphTabButtonsProps = {
   activeTabValue: string;
   onTabChange: (value: string) => void;
 };
+
+export type GraphLoaderProps = {
+  id?: string;
+  className: string;
+  children?: React.ReactNode;
+};
+
+export type GraphPopupProps = {
+  message: string;
+};

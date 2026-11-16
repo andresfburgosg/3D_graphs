@@ -19,6 +19,15 @@ const ALLOWED_FIELDS = {
   level: "level",
 } as const;
 
+const ALLOWED_FIELDS_TYPES = {
+  timestamp: "TIMESTAMP",
+  nodeId: "VARCHAR",
+  metricOne: "DOUBLE",
+  secondId: "VARCHAR",
+  parentId: "VARCHAR",
+  level: "INTEGER",
+} as const;
+
 export class TopologyDuckDbRepository implements TopologyRepository {
   #nodeIdParentIdMap = new Map<string, string>();
   #finalTopologyData: Topology[] = [];
@@ -82,7 +91,9 @@ export class TopologyDuckDbRepository implements TopologyRepository {
       SELECT
         strftime(MIN(${ALLOWED_FIELDS.timestamp}), '%Y-%m-%d') as min_date,
         strftime(MAX(${ALLOWED_FIELDS.timestamp}), '%Y-%m-%d') as max_date
-      FROM read_json_auto($filePath)
+      FROM read_json_auto($filePath, columns = {
+        ${ALLOWED_FIELDS.timestamp}: '${ALLOWED_FIELDS_TYPES.timestamp}'
+      })
       ${clause}
     `;
 

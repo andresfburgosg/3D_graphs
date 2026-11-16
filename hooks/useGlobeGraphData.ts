@@ -60,15 +60,26 @@ const useGlobeGraphData = ({
   }, [metricList]);
 
   useEffect(() => {
+    if (isLoading === true) {
+      dispatch({ type: "SET_NO_DATA", payload: false });
+    }
+  }, [dispatch, isLoading]);
+
+  useEffect(() => {
     dispatch({ type: "SET_POINTS_DATA", payload: pointsDataMemo });
     dispatch({ type: "SET_ARCS_DATA", payload: arcsDataMemo });
     dispatch({ type: "SET_HEATMAPS_DATA", payload: heatmapsDataMemo });
     dispatch({ type: "SET_MIN_METRIC", payload: minMetric });
     dispatch({ type: "SET_MAX_METRIC", payload: maxMetric });
+
+    if (!isLoading) {
+      dispatch({ type: "SET_NO_DATA", payload: !arcsDataMemo.length });
+    }
   }, [
     arcsDataMemo,
     dispatch,
     heatmapsDataMemo,
+    isLoading,
     maxMetric,
     minMetric,
     pointsDataMemo,
